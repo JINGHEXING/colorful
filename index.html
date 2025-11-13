@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手机彩色弹窗（全部内容加载）</title>
+    <style>
+        /* 文本框样式：固定大小、圆角、阴影、可拖动 */
+        .popup {
+            position: absolute; /* 绝对定位，实现随机位置 */
+            width: 200px; /* 固定宽度（可修改） */
+            height: 70px; /* 固定高度（可修改） */
+            padding: 15px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-family: "微软雅黑", Arial, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: move; /* 鼠标悬浮显示可拖动 */
+            user-select: none; /* 禁止选中文字 */
+            z-index: 1000; /* 确保在最上层 */
+        }
+
+        /* 页面背景 */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #f5f5f5;
+            overflow: hidden; /* 隐藏滚动条 */
+        }
+
+        /* 加载提示 */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">正在加载彩色弹窗...</div>
+
+    <script>
+        // -------------------------- 可自定义配置（重点修改这里） --------------------------
+        // 1. 你的所有内容（按顺序加载，每条显示一个文本框，不会重复）
+        const TEXT_CONTENTS = [
+            "沈星回",
+            "祁煜",
+            "陆景和",
+            "夏彦",
+            "shen xing hui",
+            "qi yu",
+            "lu jing he",
+            "xia yan",
+            // 在这里继续添加你的内容，格式："你的内容",
+            "星星",
+			"小鱼",
+			"King",
+			"大侦探",
+			"那就让星星自己落下来，留在你身边吧",
+			"我对你产生意义了吗",
+			"小姐姐，走路的时候要看前面",
+			"亲爱的华生小姐"
+        ];
+
+        // 2. 文字颜色列表（随机分配，但内容顺序固定）
+        const TEXT_COLORS = [
+            "#FF0000", "red", "#00FF00", "green", "#0000FF", "blue",
+            "#FFFF00", "yellow", "#FF00FF", "fuchsia", "#00FFFF", "cyan",
+            "#aaaaff", "white", "#FFA500", "orange", "#8A2BE2", "blueviolet"
+        ];
+
+        // 3. 背景颜色列表（随机分配，但内容顺序固定）
+        const BG_COLORS = [
+            "#ffaaff", "black", "#aaffff", "darkslategray",
+            "#55aaff", "steelblue", "#ffaa7f", "yy",
+            "#aaff00", "gray40", "#999999", "gray60","#FFFFFF", "white"
+        ];
+
+        // 4. 其他配置
+        const POPUP_SPEED = 150; // 弹窗弹出间隔（毫秒，越小越快）
+        // ------------------------------------------------------------------------------
+
+        // 页面加载完成后执行
+        window.onload = () => {
+            document.querySelector(".loading").remove(); // 移除加载提示
+
+            // 按顺序加载所有内容（核心改动：不再随机选内容，而是按数组顺序遍历）
+            setTimeout(() => {
+                TEXT_CONTENTS.forEach((text, index) => {
+                    // 按顺序创建弹窗，每个内容对应一个
+                    setTimeout(() => createPopup(text), index * POPUP_SPEED);
+                });
+            }, 300);
+        };
+
+        // 创建单个彩色弹窗（接收固定内容，不再随机选）
+        function createPopup(text) {
+            // 1. 随机选择文字颜色、背景颜色（内容固定，颜色随机）
+            let textColor = TEXT_COLORS[Math.floor(Math.random() * TEXT_COLORS.length)];
+            let bgColor = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
+
+            // 2. 避免文字和背景颜色太接近（优化可读性）
+            while (
+                (textColor.toLowerCase() === "white" || textColor === "#ffffff") &&
+                (bgColor.toLowerCase() === "gray60" || bgColor === "#999999") ||
+                (textColor.toLowerCase() === "black" || textColor === "#000000") &&
+                (bgColor.toLowerCase() === "black" || bgColor === "#000000" || bgColor === "#1a1a1a")&&
+				(bgColor.toLowerCase() === "orange" || bgColor === "#ffaa7f" )
+            ) {
+                textColor = TEXT_COLORS[Math.floor(Math.random() * TEXT_COLORS.length)];
+                bgColor = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
+            }
+
+            // 3. 创建弹窗元素
+            const popup = document.createElement("div");
+            popup.className = "popup";
+            popup.textContent = text; // 直接使用传入的固定内容
+            popup.style.color = textColor;
+            popup.style.backgroundColor = bgColor;
+
+            // 4. 随机位置（确保不超出手机屏幕）
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const popupWidth = 300;
+            const popupHeight = 150;
+            // 计算最大可显示位置（避免弹窗超出屏幕）
+            const maxX = screenWidth - popupWidth;
+            const maxY = screenHeight - popupHeight;
+            const x = Math.max(0, Math.floor(Math.random() * maxX)); // 确保x≥0
+            const y = Math.max(0, Math.floor(Math.random() * maxY)); // 确保y≥0
+            popup.style.left = `${x}px`;
+            popup.style.top = `${y}px`;
+
+            // 5. 添加到页面
+            document.body.appendChild(popup);
+
+            // 6. 实现弹窗拖动功能（手机/电脑都支持）
+            makeDraggable(popup);
+        }
+
+        // 拖动功能实现（触摸+鼠标都支持，适配手机）
+        function makeDraggable(element) {
+            let isDragging = false;
+            let startX, startY, offsetX, offsetY;
+
+            // 触摸事件（手机）
+            element.addEventListener("touchstart", (e) => {
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                offsetX = parseInt(element.style.left) || 0;
+                offsetY = parseInt(element.style.top) || 0;
+                isDragging = true;
+                element.style.zIndex = 1001; // 拖动时置顶
+            });
+
+            element.addEventListener("touchmove", (e) => {
+                if (!isDragging) return;
+                e.preventDefault(); // 阻止页面滚动
+                const touch = e.touches[0];
+                const currentX = touch.clientX;
+                const currentY = touch.clientY;
+                // 计算新位置
+                const newX = offsetX + (currentX - startX);
+                const newY = offsetY + (currentY - startY);
+                // 限制不超出屏幕
+                const maxX = window.innerWidth - parseInt(element.style.width) || 300;
+                const maxY = window.innerHeight - parseInt(element.style.height) || 150;
+                element.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+                element.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+            });
+
+            // 鼠标事件（电脑，可选保留）
+            element.addEventListener("mousedown", (e) => {
+                startX = e.clientX;
+                startY = e.clientY;
+                offsetX = parseInt(element.style.left) || 0;
+                offsetY = parseInt(element.style.top) || 0;
+                isDragging = true;
+                element.style.zIndex = 1001;
+            });
+
+            element.addEventListener("mousemove", (e) => {
+                if (!isDragging) return;
+                const currentX = e.clientX;
+                const currentY = e.clientY;
+                const newX = offsetX + (currentX - startX);
+                const newY = offsetY + (currentY - startY);
+                const maxX = window.innerWidth - 300;
+                const maxY = window.innerHeight - 150;
+                element.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
+                element.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
+            });
+
+            // 结束拖动（触摸+鼠标）
+            ["touchend", "mouseup", "mouseleave"].forEach(event => {
+                element.addEventListener(event, () => {
+                    isDragging = false;
+                    element.style.zIndex = 1000; // 恢复层级
+                });
+            });
+        }
+    </script>
+</body>
+</html>
